@@ -59,6 +59,34 @@ export async function OPTIONS() {
  * - 500: { error: string } - Server error
  */
 export async function POST(req: NextRequest) {
+  console.log('Parsing formData...');
+  const formData = await req.formData();
+  console.log('formData parsed');
+
+  const file = formData.get('htmlDoc');
+  const model = formData.get('model')?.toString() ?? 'ChatGPT';
+  console.log('Got htmlDoc:', file instanceof Blob);
+  console.log('Got model:', model);
+
+  if (!(file instanceof Blob)) {
+    return NextResponse.json({ error: '`htmlDoc` must be a file field' }, { status: 400 });
+  }
+
+  const html = await file.text();
+  console.log('HTML length:', html.length);
+
+  console.log('Parsing conversation...');
+  const conversation = await parseHtmlToConversation(html, model);
+  console.log('Conversation parsed');
+
+  console.log('Storing to S3...');
+  const contentKey = await s3Client.storeConversation(conversationId, conversation.content);
+  console.log('Stored to S3:', contentKey);
+
+  console.log('Creating DB record...');
+  const record = await createConversationRecord(dbInput);
+  console.log('DB record:', record);
+
   try {
     // Initialize services on first request
     await ensureInitialized();
