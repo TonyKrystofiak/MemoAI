@@ -23,6 +23,7 @@ const scrape = () => {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     chrome.tabs.sendMessage(tabs[0]?.id, { action: 'scrape' }, function (_) {
       console.log('sendData scrape Done');
+      console.log('Tabs found:', tabs);
       if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError.message);
         document.querySelector('#sharePublicLoader').style.display = 'none';
@@ -50,6 +51,13 @@ chrome.tabs.query({ active: true, currentWindow: true, url: 'https://claude.ai/*
   if (tabs?.length) {
     chrome.tabs.sendMessage(tabs[0].id, { action: 'model', model: 'Claude' }, function (_) {
       console.log('is Claude');
+    });
+  }
+});
+chrome.tabs.query({ active: true, currentWindow: true, url: 'https://chat.deepseek.com/*' }, (tabs) => {
+  if (tabs?.length) {
+    chrome.tabs.sendMessage(tabs[0].id, { action: 'model', model: 'Deepseek' }, function (_) {
+      console.log('is Deepseek');
     });
   }
 });
